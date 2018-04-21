@@ -19,7 +19,8 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
 %
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
-    
+
+
     loopCheck = 1;
     
     %Partition the constraint matrix (A) into basic and non-basic matrices.
@@ -105,7 +106,7 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
             end
         end
     end
-    fprintf(notify)
+    fprintf(notify) 
 end
 
 
