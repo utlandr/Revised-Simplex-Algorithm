@@ -11,3 +11,8 @@ function    []  =   TestWrap(mat)
 %       
 %   Author:
 %       Reed Bell   -       rbel068@aucklanduni.ac.nz
+
+%Load .mat file containing test cases
+load(mat)
+
+%Perform the Revised Simplex Method

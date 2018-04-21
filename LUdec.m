@@ -19,9 +19,10 @@ function [L,U,P] = LUdec(A)
     %Gaussian-Jordan elimination iterations
     for i = 1:m-1
         %Itentify row with the largest magnitude element in ith column
-        piv = max(abs(A(i:m,i)));
+        piv = max(abs(U(i:m,i)));
+        
         for k = i:m
-            if(abs(A(k,i)) == piv)
+            if(abs(U(k,i)) == piv)
                 piv_ind = k;
                 break;
             end
@@ -37,8 +38,8 @@ function [L,U,P] = LUdec(A)
 
         %Perform elimination
         for j = i+1:m
-            L(i,j) = U(i,j)/U(j,j);
-            U(i,j:m) = U(i,j:m) - L(i,j)*U(j,j:m);
+            L(j,i) = U(j,i)/U(i,i);
+            U(j,i:m) = U(j,i:m) - L(j,i)*U(i,i:m);
         end
     end
  

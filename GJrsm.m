@@ -19,3 +19,20 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
 %
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
+
+%Partition the constraint matrix (A) into basic and non-basic matrices.
+nbasicvars = (1:n);
+nbasicvars(basicvars) = [];
+
+B = A(:,basicvars);
+N = A(:,nbasicvars);
+
+%Partition x into basic and non-basic vectors
+
+
+%Compute the inverse of the Basis matrix (B) using LU decomposition with
+%partial pivoting (see LUinv and its dependency LUdec for more information)
+Binv = inv(B);
+
+
+
