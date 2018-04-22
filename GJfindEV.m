@@ -20,7 +20,6 @@ function [s, minrc] =   GJfindEV(m,n, c, A, varstatus,pi)
     %Form N from constraint matrix 
     N = A(:,varstatus == 0); 
     
-    
     %Compute vector of reduced costs for non-basic variables. 
     redCost = transpose(c(varstatus==0)) - transpose(pi)*N;
     

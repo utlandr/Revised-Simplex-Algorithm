@@ -26,23 +26,17 @@ function [inv] = LUinv(A)
     for i = 1:m
         
         %Use forward subsitution to find the values of intermediate vector
-        %y where Ly(:,i) = I(:,i) NOTE TO SELF: CURRENT METHOD INVOLVES
-        %UNECESSARY CALCULATIONS (MULTIPLICATION OF ENTIRE ROW / COLUMNS).
+        %y where Ly(:,i) = I(:,i). Since L is triangular, only y(1:j,i)
+        %needs to be evaluated (the rest are zero)
         for j = 1:m
-            y(j,i) = (I(j,i) - (L(j,:)*y(:,i)))/L(j,j);
+            y(j,i) = (I(j,i) - (L(j,1:j)*y(1:j,i)))/L(j,j);
         end
         
         %Use backward subsitution to find the inverse of A for column i
-        %where Ux(:,i) = y(:,i).
-        %
-        %NOTE TO SELF: INVESTIGATE WHETHER IT IS POSSIBLE TO MERGE THESE
-        %LOOPS (CURRENT METHOD RELIES UPON INTERMEDIATE VECTOR BEING
-        %CALCULATED FIRST).
-        %
-        %NOTE TO SELF: IT MIGHT BE CHEAPER TO CALC ALL OF 'y' FIRST THEN
-        %CALC ALL OF 'x'.
+        %where Ux(:,i) = y(:,i). Since U is triangular, only x(j:end,i)
+        %needs to be evaluated (the rest are zero)
         for j = m:-1:1
-            x(j,i) = (y(j,i) - U(j,:)*x(:,i))/U(j,j);
+            x(j,i) = (y(j,i) - U(j,j:end)*x(j:end,i))/U(j,j);
             
         end
  
