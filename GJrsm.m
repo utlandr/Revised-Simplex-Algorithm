@@ -26,7 +26,6 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
     %Partition the constraint matrix (A) into basic and non-basic matrices.
     nbasicvars = (1:n);
     nbasicvars(basicvars) = [];
-
     B = A(:,basicvars);
     N = A(:,nbasicvars);
     
@@ -39,17 +38,17 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
         ratioTest = zeros(2,m);
 
         %Compute pi. That is, the vector of duals or shadow prices. 
-        tranPi = transpose(c(basicvars))*Binv;
-
-        %Compute vector of reduced costs for non-basic variables. 
-        redCost = transpose(c(nbasicvars)) - tranPi*N;
-
-        %Find the index of the variable (x_s) that will reduce the objective function the
-        %most. If no variables decrease the objective function, then the current
-        %solution is optimal.
-        [val,s] = min(redCost);
-
-        if val >= 0 
+        pi = transpose(transpose(c(basicvars))*Binv);
+        
+        %Setup variable status to determine position of each variable in
+        %the matrix
+        [~,varstatus] = ismember(1:n,basicvars);
+        
+        %Call findEV() to determine minimum reduced cost
+        [minrc,s] = findEV(m,n,c,A,varstatus,pi);
+        
+        %Condition for optimality
+        if s == 0 
             %Notify user and return values
             notify = sprintf("Optimal Found\n");
             loopCheck = 0;
@@ -57,24 +56,32 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
             result = 1;
             x = Binv*b;
             z = transpose(c(basicvars))*x;
-            pi = transpose(tranPi);
+            
         else
-
-            %Apply minimum ratio to determine the leaving variable index (r).
-            ratioTest(1,:) = transpose(Binv*b);
-            ratioTest(2,:) = Binv*A(:,nbasicvars(s));
-            oldVars = transpose(ratioTest);
-
-            %If all values for entering variable are <=0, the problem is
-            %unbounded.
-            if ratioTest(2,:) <= 0
+            
+            BinvAs = Binv*A(:,nbasicvars(s));
+            
+            [r,minratio] = findLV(m,basicvars,BinvAs);
+            
+            if r == 0
                 notify = sprintf("Problem is unbounded\n");
                 loopCheck = 0;
-            else
-
-            %Remove values for the entering variable that are not positive
-            ratioTest(:,ratioTest(2,:)<=0) = NaN;
-            [~,r]   = min(ratioTest(1,:)./ratioTest(2,:));
+            
+%             %Apply minimum ratio to determine the leaving variable index (r).
+%             ratioTest(1,:) = transpose(Binv*b);
+%             ratioTest(2,:) = Binv*A(:,nbasicvars(s));
+%             oldVars = transpose(ratioTest);
+% 
+%             %If all values for entering variable are <=0, the problem is
+%             %unbounded.
+%             if ratioTest(2,:) <= 0
+%                 notify = sprintf("Problem is unbounded\n");
+%                 loopCheck = 0;
+%             else
+% 
+%             %Remove values for the entering variable that are not positive
+%             ratioTest(:,ratioTest(2,:)<=0) = NaN;
+%             [~,r]   = min(ratioTest(1,:)./ratioTest(2,:));
 
 
             %Perform Gaussian-Jordan Pivoting replace variables and find new Binv
