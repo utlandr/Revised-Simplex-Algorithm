@@ -1,4 +1,4 @@
-function [r, minratio]  =  findLV(m, xB, BinvAs)
+function [r, minratio]  =  GJfindLV(m, xB, BinvAs)
 %   Returns the position in the basis of the leaving variable,
 %   or returns 0 if no leaving variable exists
 % 
@@ -16,7 +16,6 @@ function [r, minratio]  =  findLV(m, xB, BinvAs)
     
     %Setup ratio test matrix
     ratioTest = [xB,BinvAs];
-    %ratioTest = transpose(BinAs);%Binv*A(:,nbasicvars(s));
 
     %If all values for entering variable are <=0, the problem is unbounded
     if ratioTest(:,2) <= 0

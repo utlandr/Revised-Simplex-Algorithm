@@ -1,4 +1,4 @@
-function [s, minrc] =   findEV(m,n, c, A, varstatus,pi)
+function [s, minrc] =   GJfindEV(m,n, c, A, varstatus,pi)
 %   Returns the index of the entering variable and it's reduced cost,
 %   or returns 0 if no entering variable exists
 %
@@ -35,6 +35,3 @@ function [s, minrc] =   findEV(m,n, c, A, varstatus,pi)
     
     end
 end
-
-%B = A(bvars);
-%[~,bvars] = ismember(1:m, varstatus);
