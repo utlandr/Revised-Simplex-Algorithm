@@ -45,7 +45,7 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
         [~,varstatus] = ismember(1:n,basicvars);
         
         %Call findEV() to determine minimum reduced cost
-        [minrc,s] = findEV(m,n,c,A,varstatus,pi);
+        [s, minrc] = findEV(m,n,c,A,varstatus,pi);
         
         %Condition for optimality
         if s == 0 
@@ -60,8 +60,8 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
         else
             
             BinvAs = Binv*A(:,nbasicvars(s));
-            
-            [r,minratio] = findLV(m,basicvars,BinvAs);
+            xB = Binv*b;
+            [r,minratio] = findLV(m,xB,BinvAs);
             
             if r == 0
                 notify = sprintf("Problem is unbounded\n");
@@ -85,7 +85,7 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
 
 
             %Perform Gaussian-Jordan Pivoting replace variables and find new Binv
-            augMatrixOld = [oldVars(:,1), Binv, oldVars(:,2)];
+            augMatrixOld = [xB, Binv, BinvAs];
 
             %Normalise row reprsenting leaving variable
             normrMatrix  = augMatrixOld;

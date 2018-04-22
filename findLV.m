@@ -14,23 +14,19 @@ function [r, minratio]  =  findLV(m, xB, BinvAs)
 %   Author:
 %       Reed Bell   -   rbel068@aaucklanduni.ac.nz
     
-    %Initialisation for ratio test
-    ratioTest = zeros(2,m);
+    %Setup ratio test matrix
+    ratioTest = [xB,BinvAs];
+    %ratioTest = transpose(BinAs);%Binv*A(:,nbasicvars(s));
 
-    %Apply minimum ratio to determine the leaving variable index (r).
-    ratioTest(1,:) = transpose(Binv*b);
-    ratioTest(2,:) = transpose(BinAs);%Binv*A(:,nbasicvars(s));
-    oldVars = transpose(ratioTest);
-
-    %If all values for entering variable are <=0, the problem is
-    if ratioTest(2,:) <= 0
+    %If all values for entering variable are <=0, the problem is unbounded
+    if ratioTest(:,2) <= 0
         r = 0;
         minratio = 0; 
     
     else
         %Remove values for the entering variable that are not positive
-        ratioTest(:,ratioTest(2,:)<=0) = NaN;
-        [minratio,r]   = min(ratioTest(1,:)./ratioTest(2,:));
+        ratioTest(ratioTest(:,2)<=0,:) = NaN;
+        [minratio,r]   = min(ratioTest(:,1)./ratioTest(:,2));
     
     end
     
