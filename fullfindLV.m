@@ -1,4 +1,4 @@
-function [r, minratio]  =  GJfindLV(m, xB, BinvAs)
+function [r, minratio]  =  fullfindLV(m, xB, BinvAs, phase1, basicvars)
 %   Returns the position in the basis of the leaving variable,
 %   or returns 0 if no leaving variable exists
 % 
@@ -6,6 +6,8 @@ function [r, minratio]  =  GJfindLV(m, xB, BinvAs)
 %       m           =   number of constraints and variables
 %       xB          =   mx1 basic variable vector
 %       BinvAs      =   mx1 vector of Binv*As
+%       phase1      =   boolean, phase1 = true if Phase 1, or false otherwise
+%       basicvars   =   1xm vector of indices of basic variables
 %
 %   Output:
 %       r           =   position in the basis of the leaving variable

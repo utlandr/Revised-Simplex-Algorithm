@@ -1,18 +1,18 @@
-function [s, minrc] =   GJfindEV(m,n, c, A, varstatus,pi)
-%   Returns the index of the entering variable and it's reduced cost,
-%   or returns 0 if no entering variable exists
-%
+function [s,minrc] = fullfindEV(n,c,A,varstatus,pi,phase1)
+% Returns the index of the entering variable and it's reduced cost,
+% or returns 0 if no entering variable exists
+% 
 %   Input:
-%       m,n         =   number of constraints and variables
-%       c           =   nx1 cost vector
-%       A           =   mxn constraint matrix
-%       varstatus   =   1xn matrix containing position in basis of x_i,
-%                       zero if not in the basis
-%       pi          =   mx1 dual vector
+%       n = number of variables
+%       c = nx1 cost vector
+%       A = mxn constraint matrix
+%       varstatus = 1xn vector, varstatus(i) = position in basis of variable i, or 0 if variable i is nonbasic
+%       pi = mx1 vector of shadow prices
+%       phase1 = boolean, phase1 = true if Phase 1, or false otherwise
 %
 %   Output:
-%       s           =   index of the entering variable
-%       minrc       =   reduced cost of the entering variable
+%       s = index of the entering variable
+%       minrc = reduced cost of the entering variable
 %
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
