@@ -43,16 +43,16 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
     xB = Binv*b;
     
     %Get basic coefficients subset
-    cB = c(basicvars);
+    cBT = transpose(c(basicvars));
     
     
-    %   RSM ITERATION STAGE
-    %   ===================
+    %   RSM ITERATION
+    %   =============
     
     while loopCheck 
         
         %Compute pi. That is, the vector of duals or shadow prices. 
-        pi = transpose(transpose(c(basicvars))*Binv);
+        pi = transpose(cBT*Binv);
                
         %Call GJfindEV() to determine minimum reduced cost
         [s, ~] = GJfindEV(m,n,c,A,varstatus,pi);
@@ -64,7 +64,7 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
             loopCheck = 0;
             result = 1;
             x = Binv*b;
-            z = transpose(c(basicvars))*x;
+            z = cBT*x;
             
         else
             BinvAs = Binv*A(:,nbasicvars(s));
@@ -78,7 +78,7 @@ function [result,z,x,pi,basicvars]  =   GJrsm(m,n,c,A,b,basicvars)
             
             else
                 %Call GJupdate() before next iteration to set next iteration
-                [varstatus,basicvars, cB, Binv, xB]  =  GJupdate(m, c, s, r, BinvAs, varstatus, basicvars, cB, Binv, xB);             
+                [varstatus,basicvars, cB, Binv, xB]  =  GJupdate(m, c, s, r, BinvAs, varstatus, basicvars, transpose(cBT), Binv, xB);             
             
             end
         end
