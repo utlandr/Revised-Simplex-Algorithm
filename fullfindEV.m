@@ -27,8 +27,16 @@ function [s,minrc] = fullfindEV(n,c,A,varstatus,pi,phase1)
     %redCost = transpose(c(varstatus==0)) - transpose(pi)*N;
     %=======================================================
     
-    %Pre-allocation
-    cN = c(varstatus==0);
+    %Pre-allocation if in phase1, cN is zero for non-artificial variables
+    if phase1
+        cN = c(varstatus==0);
+        cN(find(varstatus == 0) <= n ) = 0;
+    
+    else
+        cN = c(varstatus==0);
+        
+    end
+    
     piT = transpose(pi);
     redCost = zeros(1,m);
     
