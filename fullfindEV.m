@@ -31,9 +31,9 @@ function [s,minrc] = fullfindEV(n,c,A,varstatus,pi,phase1)
     
     %Pre-allocation if in phase1, cN is zero for non-artificial variables
     if phase1
-        cN = c(nbasicvars);
+        cN = c;
         cN(find(nbasicvars) <= n ) = 0;
-       
+        cN = cN(nbasicvars);
     else
         cN = c(nbasicvars);
         
