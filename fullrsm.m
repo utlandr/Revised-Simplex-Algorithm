@@ -140,10 +140,11 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
                 end
                 
                 cBT = transpose(cB);
-                
-            
+                        
             end
+            
         end
+        
     end
      
 end                
