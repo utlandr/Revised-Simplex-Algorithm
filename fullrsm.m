@@ -13,16 +13,16 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
 %   Outputs:
 %       result      =   1 if problem is optimal, -1 if unbounded
 %       z           =   objective function value
-%       x           =   nx1 solution vector
+%       x           =   nx1 solution vector arranged such that x(i) is x_i
 %
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
 
-    
+
     %   INITIALISATION STAGE
     %   =====================
     
-    loopCheck = 1;
+    loopCheck = true;
     
     %With no initial basis provided, bootstrapping is first required to
     %create a basis before solving the LP.
@@ -33,7 +33,6 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
     %implied by 1:n+m rather than 1:n. Basic and non-basc constraint 
     %matrices can be setup(as they are grouped together).
     basicvars = n+1:n+m;
-    nbasicvars = 1:n;
     B = eye(m);
     N = A; 
     A = [N,B];
@@ -49,7 +48,7 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
     %Compute basic variable values
     xB = Binv*b;
     
-    %Get basic coefficients subset
+    %Reform c objective coefficients
     c = [c;ones(m,1)];
     cBT = c;
     cBT = transpose(cBT(basicvars)); 
@@ -62,37 +61,89 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
     %then we begin phase 1 to create a viable basis.
     while loopCheck 
         
-        %Compute pi. That is, the vector of duals or shadow prices. 
-        pi = transpose(cBT*Binv);
+        %Compute pi. That is, the vector of duals or shadow prices. If in
+        %phase1, this invlolves setting costs for non-artificial variables
+        %to zero. 
+        if phase1
+            tmpC = cBT;
+            searchC = find( varstatus ~= 0);
+            tmpC(varstatus(searchC( searchC<= n))) = 0;
+            pi = transpose(tmpC*Binv);
+            
+        else
+            pi = transpose(cBT*Binv);
+
+        end
                
-        %Call GJfindEV() to determine minimum reduced cost
+        %Call fullfindEV() to determine minimum reduced cost
         [s, ~] = fullfindEV(n,c,A,varstatus,pi,phase1);
         
         %Condition for optimality
         if s == 0 
             %return values
-            %notify = sprintf("Optimal Found\n");
-            loopCheck = 0;
-            result = 1;
-            x = Binv*b;
-            z = cBT*x;
+            if ~phase1
+                loopCheck = false;
+                result = 1;
+            end
+            
+            %Calculate solution and objective values (whilst also
+            %rearranging x such that x(i) is the value for x_i
+            x = zeros(n,1);
+            x(varstatus ~= 0) = xB(varstatus(varstatus ~= 0));
+            z = cBT*xB;    
+
+            if phase1
+                %Check for positive objective (infeasible)
+                if z > 0
+                    result = 0;
+                    z = NaN;
+                    x = [];
+                    pi = [];
+                    loopCheck = false;
+                    
+                else
+                    %End of phase 1
+                    phase1 = false;
+                    
+                    %Remove all artificial variables not in the basis
+                    nsearch = find(varstatus ==0);
+                    varstatus(nsearch(nsearch > n)) = [];
+                
+                end
+                
+            end
             
         else
-            BinvAs = Binv*A(:,nbasicvars(s));
+            %Calculate BinvA for the entering variable
+            BinvAs = Binv*A(:,s);
             
-            %call GJfindLV() to determine leaving variable
-            [r,~] = GJfindLV(m,xB,BinvAs, phase1, basicvars);
+            %Call fullfindLV() to determine leaving variable
+            [r,~] = fullfindLV(m,n,xB,BinvAs, phase1, basicvars);
             
+            %Check if fullfindLV discovers unboundedness 
             if r == 0
-                %notify = sprintf("Problem is unbounded\n");
-                loopCheck = 0;
+                loopCheck = false;
+                result = -1;
+                z = NaN;
+                pi = [];
+                x = [];
             
             else
-                %Call GJupdate() before next iteration to set next iteration
-                [varstatus,basicvars, cB, Binv, xB]  =  GJupdate(m, c, s, r, BinvAs, varstatus, basicvars, transpose(cBT), Binv, xB);             
+                %Call fullupdate() before next iteration to set next iteration
+                [varstatus,basicvars, cB, Binv, xB]  =  fullupdate(m, c, s, r, BinvAs, phase1, varstatus, basicvars, transpose(cBT), Binv, xB);   
+                
+                %End phase 1 if there are no artificial variables in the
+                %basis
+                if phase1 && isempty(basicvars(basicvars > n))
+                    phase1 = false;
+                    
+                end
+                
+                cBT = transpose(cB);
+                
             
             end
         end
     end
-    fprintf(notify) 
+     
 end                

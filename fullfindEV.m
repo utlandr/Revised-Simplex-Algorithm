@@ -17,8 +17,10 @@ function [s,minrc] = fullfindEV(n,c,A,varstatus,pi,phase1)
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
     
-    %Form N from constraint matrix 
-    N = A(:,varstatus == 0); 
+    %Form N from constraint matrix as well as necessary parameters
+    nbasicvars = find(varstatus == 0);
+    N = A(:,nbasicvars); 
+    Nlen = size(N,2);
     
     %Compute vector of reduced costs for non-basic variables. This is
     %looped for proof of understanding. However, the matrix operation below
@@ -29,20 +31,22 @@ function [s,minrc] = fullfindEV(n,c,A,varstatus,pi,phase1)
     
     %Pre-allocation if in phase1, cN is zero for non-artificial variables
     if phase1
-        cN = c(varstatus==0);
-        cN(find(varstatus == 0) <= n ) = 0;
-    
+        cN = c(nbasicvars);
+        cN(find(nbasicvars) <= n ) = 0;
+       
     else
-        cN = c(varstatus==0);
+        cN = c(nbasicvars);
         
     end
     
+    %Pre-allocation before looping
+    m= length(pi);
     piT = transpose(pi);
-    redCost = zeros(1,m);
+    redCost = zeros(1,Nlen);
     
     %Iterate through and calculate reduced cost for each variable (and form
     %reduced costs vector
-    for i=1:n-m
+    for i=1:Nlen
         
         %Perform matrix multiplication to get piTN for each column
         piTN = 0;
@@ -57,9 +61,9 @@ function [s,minrc] = fullfindEV(n,c,A,varstatus,pi,phase1)
     end
     
     %Find the index of the variable (x_s) that will reduce the objective function the
-    %most. If no variables decrease the objective function, then the current
-    %solution is optimal.
-    [minrc,s] = min(redCost);
+    %most (if all are non-negative, then return values [minrc,s] = [0,0]
+    [minrc,sPos] = min(redCost);
+    s = nbasicvars(sPos);
     
     if minrc >= 0 
         minrc = 0;

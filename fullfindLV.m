@@ -1,4 +1,4 @@
-function [r, minratio]  =  fullfindLV(m,n, xB, BinvAs, phase1, basicvars)
+function [r, minratio]  =  fullfindLV(m, n, xB, BinvAs, phase1, basicvars)
 %   Returns the position in the basis of the leaving variable,
 %   or returns 0 if no leaving variable exists
 % 
@@ -22,11 +22,12 @@ function [r, minratio]  =  fullfindLV(m,n, xB, BinvAs, phase1, basicvars)
         minratio = 0; 
     
     else
-        %Setup checks for non-zero artificial variables
+        %Setup checks for non-zero artificial variables in the basis
         artCheck = (find(basicvars > n));
         artCheck = find(xB(artCheck) ~= 0);
         
-        if (~phase1) && (artCheck)
+        %Take the first artificial variable when in phase 2
+        if ~phase1 && ~isempty(artCheck)
             r = artCheck(0);
             minratio = 0;
     
@@ -37,7 +38,7 @@ function [r, minratio]  =  fullfindLV(m,n, xB, BinvAs, phase1, basicvars)
             %Remove values for the entering variable that are not positive
             ratioTest(ratioTest(:,2)<=0,:) = NaN;
             [minratio,r]   = min(ratioTest(:,1)./ratioTest(:,2));
-        
+      
         end
         
     end

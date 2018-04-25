@@ -25,27 +25,46 @@ function [varstatus,basicvars,cB,Binv,xB] = fullupdate(m,c,s,r,BinvAs,phase1,var
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
 
-    %Perform Gaussian-Jordan Pivoting replace variables and find new Binv
+    %Setup augmented matrix
     nbasicvars = find(varstatus==0);
     augMatrix = [xB, Binv, BinvAs];
-
-    %Normalise row representing leaving variable
     augMatrix(r,:)  = augMatrix(r,:)/augMatrix(r,end);
-
+    
+    %Identify rows to pivot against
     elimRows = 1:m;
     elimRows(elimRows==r) = [];
+    
+    %Perform Gaussian Jordan pivoting to obtain new inverse basis and x solution. 
     for i = elimRows
         augMatrix(i,:) = augMatrix(i,:) - (augMatrix(i,end)/augMatrix(r,end))*(augMatrix(r,:));
 
     end
 
-    %Update vector tracking basic and non basic variables (in order)
-    basicvars(s) = nbasicvars(r);
-    [~,varstatus] = ismember(1:size(c),basicvars);
+    %Update vector tracking basic and non basic variables (in order).
+    if basicvars(r) > (length(c) - m)
+        artVar = basicvars(r);
+        [basicvars(r),nbasicvars(nbasicvars == s)] = deal(s,basicvars(r));
+        [varstatus(artVar),varstatus(s)] = deal(0,r) ;
+        
+        
+    else
+        [varstatus(basicvars(r)),varstatus(s)] = deal(0,r);
+        [basicvars(r),nbasicvars(nbasicvars == s)] = deal(s,basicvars(r));
     
+    end
+    
+    %Check for completion of phase 1 (no artificial variables in
+    %the basis).
+    n = length(varstatus) - m;
+    if phase1 && isempty(basicvars(basicvars > n))
+        %Removal of artificial variables that are non basic
+        varstatus(nbasicvars(nbasicvars > n)) = [];
+        
+    end
+
     %Update function return values
     cB = c(basicvars);
     Binv = augMatrix(:,2:end-1);
     xB = augMatrix(:,1);
-    
+
 end
