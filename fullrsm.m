@@ -78,8 +78,8 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
         %Call fullfindEV() to determine minimum reduced cost
         [s, ~] = fullfindEV(n,c,A,varstatus,pi,phase1);
         
-        %Condition for optimality
-        if s == 0 
+        %Condition for optimality (empty set when A matrix is square)
+        if isequal(s, 0) || isempty(s)
             %return values
             if ~phase1
                 loopCheck = false;
