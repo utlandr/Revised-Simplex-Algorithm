@@ -14,6 +14,7 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
 %       result      =   1 if problem is optimal, -1 if unbounded
 %       z           =   objective function value
 %       x           =   nx1 solution vector arranged such that x(i) is x_i
+%       pi          =   shadow costs of the basic variables. 
 %
 %   Author:
 %       Reed Bell   -   rbel068@aucklanduni.ac.nz
@@ -118,7 +119,7 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
             BinvAs = Binv*A(:,s);
             
             %Call fullfindLV() to determine leaving variable
-            [r,~] = fullfindLV(m,n,xB,BinvAs, phase1, basicvars);
+            [r,~] = fullfindLV(n,xB,BinvAs, phase1, basicvars);
             
             %Check if fullfindLV discovers unboundedness 
             if r == 0
