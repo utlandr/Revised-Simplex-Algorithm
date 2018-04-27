@@ -62,14 +62,10 @@ function [varstatus,basicvars,cB,Binv,xB] = fullupdate(m,c,s,r,BinvAs,phase1,var
         
     end
 
-    %Update function return values
-    cB = c(basicvars);
+    %Update function return values (phase 1 non-artificial variables
+    %set to 0).
+    cB(r) = c(s)*~phase1;
     Binv = augMatrix(:,2:end-1);
     xB = augMatrix(:,1);
- 
-    %Remove
-    if phase1
-        cB(basicvars <= n) = 0;
-    end
     
 end
