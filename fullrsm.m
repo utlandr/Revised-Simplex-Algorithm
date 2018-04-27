@@ -23,7 +23,8 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
     %   INITIALISATION STAGE
     %   =====================
     
-    loopCheck = true;
+    %looping condition (
+    result = 2;
     
     %With no initial basis provided, bootstrapping is first required to
     %create a basis before solving the LP.
@@ -33,10 +34,7 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
     %initialisation, all basic variables will be artificial (implicity
     %implied by 1:n+m rather than 1:n. Basic and non-basc constraint 
     %matrices can be setup(as they are grouped together).
-    basicvars = n+1:n+m;
-    B = eye(m);
-    N = A; 
-    A = [N,B];
+    basicvars = n+1:n+m; B = eye(m); N = A; A = [N,B];
     
     %Setup variable status to determine position of each variable in
     %the matrix
@@ -49,33 +47,23 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
     %Compute basic variable values
     xB = Binv*b;
     
-    %Reform c objective coefficients
-    c = [c;ones(m,1)];
-    cBT = c;
-    cBT = transpose(cBT(basicvars)); 
-    
+    %Reform c for phase 1 and create 
+    cB = ones(m,1);
+    c = [c;cB];
+    cBT = transpose(cB); 
+    %searchC = find( varstatus ~= 0);
+    %cBT(varstatus(searchC( searchC<= n))) = 0;    
     
     %   RSM ITERATION
     %   =============
     
     %Begin RSM iterations to minimise objective function. If phase1 is true
     %then we begin phase 1 to create a viable basis.
-    while loopCheck 
+    while result == 2 
         
-        %Compute pi. That is, the vector of duals or shadow prices. If in
-        %phase1, this invlolves setting costs for non-artificial variables
-        %to zero. 
-        if phase1
-            tmpC = cBT;
-            searchC = find( varstatus ~= 0);
-            tmpC(varstatus(searchC( searchC<= n))) = 0;
-            pi = transpose(tmpC*Binv);
-            
-        else
-            pi = transpose(cBT*Binv);
-
-        end
-               
+        %Compute pi. That is, the vector of duals or shadow prices. 
+        pi = transpose(cBT*Binv);
+        
         %Call fullfindEV() to determine minimum reduced cost
         [s, ~] = fullfindEV(n,c,A,varstatus,pi,phase1);
         
@@ -83,7 +71,6 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
         if isequal(s, 0) || isempty(s)
             %return values
             if ~phase1
-                loopCheck = false;
                 result = 1;
             end
             
@@ -92,7 +79,8 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
             x = zeros(n,1);
             x(varstatus ~= 0) = xB(varstatus(varstatus ~= 0));
             z = cBT*xB;    
-
+            
+            
             if phase1
                 %Check for positive objective (infeasible)
                 if z > 0
@@ -100,8 +88,9 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
                     z = NaN;
                     x = [];
                     pi = [];
-                    loopCheck = false;
                     
+            break;
+            
                 else
                     %End of phase 1
                     phase1 = false;
@@ -123,25 +112,23 @@ function [result,z,x,pi]  =   fullrsm(m,n,c,A,b)
             
             %Check if fullfindLV discovers unboundedness 
             if r == 0
-                loopCheck = false;
                 result = -1;
                 z = NaN;
                 pi = [];
                 x = [];
-            
+                break;
             else
                 %Call fullupdate() before next iteration to set next iteration
-                [varstatus,basicvars, cB, Binv, xB]  =  fullupdate(m, c, s, r, BinvAs, phase1, varstatus, basicvars, transpose(cBT), Binv, xB);   
+                [varstatus,basicvars, cB, Binv, xB]  =  fullupdate(m, c, s, r, BinvAs, phase1, varstatus, basicvars, transpose(cBT), Binv, xB);
                 
                 %End phase 1 if there are no artificial variables in the
-                %basis
-                if phase1 && isempty(basicvars(basicvars > n))
-                    phase1 = false;
-                    
+                %basis (or are degenerate)
+                if phase1 && (transpose(cB)*xB == 0)
+                   phase1 = false;
+                   cB = zeros(m,1); cB(varstatus(varstatus>0)) = c(varstatus>0);
                 end
                 
-                cBT = transpose(cB);
-                        
+                cBT = transpose(cB);    
             end
             
         end
